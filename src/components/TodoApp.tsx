@@ -11,19 +11,38 @@ const TodoApp = () => {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [newTodo, setNewTodo] = useState("");
   const [completedTodos, setCompletedTodos] = useState<TodoItem[]>([]);
+  const [editingTodo, setEditingTodo] = useState<TodoItem | null>(null);
 
   const addTodo = () => {
     if (newTodo !== "") {
-      const newId = crypto.randomUUID();
-      const newTodoItem: TodoItem = {
-        id: newId,
-        text: newTodo,
-        completed: false,
-        createdAt: new Date(),
-      };
-      setTodos([...todos, newTodoItem]);
+      if (editingTodo) {
+        const updatedTodos = todos.map((todo) =>
+          todo.id === editingTodo.id ? { ...todo, text: newTodo } : todo
+        );
+        setTodos(updatedTodos);
+        setEditingTodo(null);
+      } else {
+        const newId = crypto.randomUUID();
+        const newTodoItem: TodoItem = {
+          id: newId,
+          text: newTodo,
+          completed: false,
+          createdAt: new Date(),
+        };
+        setTodos([...todos, newTodoItem]);
+      }
       setNewTodo("");
     }
+  };
+
+  const editTodo = (todo: TodoItem) => {
+    setEditingTodo(todo);
+    setNewTodo(todo.text);
+  };
+
+  const cancelEdit = () => {
+    setEditingTodo(null);
+    setNewTodo("");
   };
 
   const deleteTodo = (id: string) => {
@@ -62,8 +81,16 @@ const TodoApp = () => {
           onClick={addTodo}
           className="px-4 py-2 bg-blue-500 text-white rounded-full cursor-pointer text-base transition duration-300 hover:bg-blue-600 mt-4 mx-auto place-items-center focus:outline-none"
         >
-          Add Todo
+          {editingTodo ? "Update Todo" : "Add Todo"}
         </button>
+        {editingTodo && (
+          <button
+            onClick={cancelEdit}
+            className="px-4 py-2 bg-gray-500 text-white rounded-full cursor-pointer text-base transition duration-300 hover:bg-gray-600 mt-4 mx-auto place-items-center focus:outline-none ml-2"
+          >
+            Cancel
+          </button>
+        )}
         <ul className="list-none">
           {todos.map((todo) => (
             <li
@@ -81,6 +108,12 @@ const TodoApp = () => {
               >
                 {todo.text} - Created at: {todo.createdAt.toLocaleString()}
               </span>
+              <button
+                onClick={() => editTodo(todo)}
+                className="ml-4 bg-gray-500 text-white px-4 py-2 rounded-full cursor-pointer transition duration-300 hover:bg-gray-600 focus:outline-none"
+              >
+                Edit
+              </button>
               <button
                 onClick={() => deleteTodo(todo.id)}
                 className="ml-4 bg-red-500 text-white px-4 py-2 rounded-full cursor-pointer transition duration-300 hover:bg-red-600 focus:outline-none"
